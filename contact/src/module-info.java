@@ -1,0 +1,11 @@
+/**
+ * 
+ */
+/**
+ * 
+ */
+module contact {
+	
+	requires lombok;
+}
+
