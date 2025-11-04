@@ -4,87 +4,82 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.ObjectInput;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
+import java.util.stream.Collectors;
 
 public class Main {
 	
 	private static final String FILE_PATH = "contacts.dat";
-    static List<Person> contactList;
-	
+	static List<Person> contactList;
+
 	public static void main(String[] args) {
 		Scanner sc = new Scanner(System.in);
-		contactList = Load();     // 연락처 파일 불러오기 
-		
+		Sequence sequence = new Sequence(); // 시퀀스 파일 러오기
+		contactList = load();		// 연락처 파일 불러오기
 		while(true) {
-		  System.out.println("::::::연락처 프로그램:::::::::");
-		  System.out.println("1. 연락처 추가");
-		  System.out.println("2. 연락처 수정");
-		  System.out.println("3. 연락처 삭제");
-		  System.out.println("4. 연락처 목록");
-		  System.out.println("0. 종료");
-		  System.out.println("메뉴 선택 : ");
-		  int menu = sc.nextInt();
-		  sc.nextInt();
-		  
-		  switch (menu) {
-		case 0:
-			  System.out.println("프로그램을 종료합니다.");
-			  sc.close();
-			    return;
-		case 1 : // 연락처 추가
-                System.out.println("이름 : ");
-                String name = sc.nextLine();
-                System.out.println("전화번호 : ");
-                String phone = sc.nextLine();
-                System.out.println("메모 : ");
-                String memo = sc.nextLine();
-                int no = contactList.size() + 1;
-                add(new Person(no, name, phone,memo));
-			    break;
-		case 2 : // 연락처 수정
-			    System.out.println("번호 : ");
-			    int updateNo = sc.nextInt();
-			    sc.nextLine();
-			    System.out.println("이름 : ");
-			    String updateName = sc.nextLine();
-			    System.out.println("전화번호 : ");
-			    String updatePhone = sc.nextLine();
-			    System.out.println("메모 : ");
-			    String updateMemo = sc.nextLine();
-			    
-			    update(updateNo, updateName, updatePhone, updateMemo);
-			    break;
-		case 3 : // 연락처 삭제
-			    System.out.println("번호 : ");
-			    int deleteNo = sc.nextInt();
-			    delete(deleteNo);
-			    break;
-		case 4 : // 연락처 목록
-			    List();
-			    break;
+			System.out.println(":::::::::: 연락처 프로그램 :::::::::");
+			System.out.println("1. 연락처 추가");
+			System.out.println("2. 연락처 수정");
+			System.out.println("3. 연락처 삭제");
+			System.out.println("4. 연락처 목록");
+			System.out.println("0. 종료");
+			System.out.print("메뉴 선택 : ");
+			int menu = sc.nextInt();
+			sc.nextLine();
+			
+			switch (menu) {
+				case 0:
+						System.out.println("프로그램을 종료합니다.");
+						sc.close();
+						return;
+				case 1: // 연락처 추가
+						System.out.print("이름 : ");
+						String name = sc.nextLine();
+						System.out.print("전화번호 : ");
+						String phone = sc.nextLine();
+						System.out.print("메모 : ");
+						String memo = sc.nextLine();
+						int no = sequence.nextNo();  // 저장된 시퀀스 사용
+						add(new Person(no, name, phone, memo));
+						break;
+				case 2: // 연락처 수정
+						System.out.print("번호 : ");
+						int updateNo = sc.nextInt();
+						sc.nextLine();
+						System.out.print("이름 : ");
+						String updateName = sc.nextLine();
+						System.out.print("전화번호 : ");
+						String updatePhone = sc.nextLine();
+						System.out.print("메모 : ");
+						String updateMemo = sc.nextLine();
+
+						update(updateNo, updateName, updatePhone, updateMemo);
+						break;
+				case 3: // 연락처 삭제
+						System.out.print("번호 : ");
+						int deleteNo = sc.nextInt();
+						delete(deleteNo);
+						break;
+				case 4: // 연락처 목록
+						list();
+						break;
+			}
+			
 		}
-		  
-	  }
 		
-	}
-
-	// main() 끝
+	} // main() 끝
 	
-	private static java.util.List<Person> Load() {
-		return null;
-	}
-
-	//연락처 추가
+	// 연락처 추가
 	private static void add(Person person) {
-		contactList.add(person);         // 리스트에 추가
-		save(contactList);               // 추가된 리스트를 파일로 저장
+		contactList.add(person);	// 리스트에 추가
+		save(contactList);			// 추가된 리스트를 파일로 저장
 	}
-	//연락처 수정
+	
+	// 연락처 수정
 	private static void update(int updateNo, String updateName, String updatePhone, String updateMemo) {
 		Person updatePerson = contactList.get(updateNo-1);
 		updatePerson.setName(updateName);
@@ -92,30 +87,35 @@ public class Main {
 		updatePerson.setMemo(updateMemo);
 		save(contactList);
 	}
+	
 	// 연락처 삭제
 	private static void delete(int deleteNo) {
-		contactList.remove(deleteNo-1);
+		// index 기준으로 삭제
+        // contactList.remove(deleteNo-1);
+		// 시퀀스 기준으로 삭제
+		// - 스트림 
+		contactList.stream()
+                   .filter( contact -> contact.getNo() != deleteNo )		
+		           .collect( Collectors.toList() );
 		save(contactList);
 	}
-	 
-	// 연락처 목록
-    private static  void List() {
-    	System.out.println(":::::::목록::::::::");
-    	if ( contactList.isEmpty() ) 
-			System.out.println("저장된 연락처가 없습니다.");
-		 else {
-           for (Person person : contactList) {
-        	   System.out.println(person);
-           }
-           
-		}
-    }
-  
 	
+	// 연락처 목록
+	private static void list() {
+		System.out.println(":::::::::: 목록 ::::::::::");
+		if( contactList.isEmpty() )
+			System.out.println("저장된 연락처가 없습니다.");
+		else 
+			for (Person person : contactList) {
+				System.out.println(person);
+			}
+		
+	}
 
-	// 직렬화        (파일 저장)
+
+	// 직렬화		(파일 저장)
 	private static void save(List<Person> list) {
-		try(
+		try( 
 			FileOutputStream fos = new FileOutputStream(FILE_PATH);
 			ObjectOutputStream oos = new ObjectOutputStream(fos);
 		) {
@@ -124,27 +124,44 @@ public class Main {
 		} catch(IOException e) {
 			e.printStackTrace();
 		}
-		
 	}
 	
-	// 역직렬화       ( 파일 읽기)
-    private static List<Person> load() {
-    	File file = new File(FILE_PATH);
-    	if( !file.exists() ) {
-    		System.out.println("연락처 파일이 없습니다.");
-    	}
-    	
-    	try(
-           FileInputStream fis = new FileInputStream(file);
-    	   ObjectInputStream ois = new ObjectInputStream(fis);
-         ) {
-    	  List<Person> list  = (List<Person>) ois.readObject();
-    	  System.out.println("연락처 파일을 불러옵니다.");
-    	  return list;
-    	} catch(Exception e) {
-    		e.printStackTrace();
-    		return new ArrayList<Person>();
-    	}
-   }
+	// 역직렬화	(파일 읽기)
+	private static List<Person> load() {
+		File file = new File(FILE_PATH);
+		if( !file.exists() ) {
+			System.out.println("연락처 파일이 없습니다.");
+			return new ArrayList<Person>();
+		}
+		
+		try(
+			FileInputStream fis = new FileInputStream(file);
+			ObjectInputStream ois = new ObjectInputStream(fis);
+		) {
+			List<Person> list = (List<Person>) ois.readObject();
+			System.out.println("연락처 파일을 불러옵니다.");
+			return list;
+		} catch(Exception e) {
+			e.printStackTrace();
+			return new ArrayList<Person>();
+		}
+	}
+	
+	
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
